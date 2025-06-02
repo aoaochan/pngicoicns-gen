@@ -1,0 +1,34 @@
+name: Auto Tag
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with: { fetch-depth: 0 }   # 기존 태그 조회용
+
+    - name: Calculate & create next tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # 가장 최신 태그 가져오기 (vX.Y.Z)
+        latest=$(git tag --list 'v*.*.*' --sort=-creatordate | head -n 1)
+        if [ -z "$latest" ]; then
+          new_tag="v1.0.0"
+        else
+          IFS='.' read -r major minor patch <<<"${latest#v}"
+          patch=$((patch + 1))
+          new_tag="v${major}.${minor}.${patch}"
+        fi
+
+        # HEAD가 이미 태그돼 있으면 종료
+        if git tag --points-at HEAD | grep -q '^v'; then
+          echo "Already tagged → skip"; exit 0
+        fi
+
+        echo "Create and push $new_tag"
+        git tag "$new_tag"
+        git push origin "$new_tag"

@@ -4,71 +4,49 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
 
-    - name: Cache Rust dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
-        components: rustfmt, clippy
-
-    - name: Cache wasm-pack
-      uses: actions/cache@v3
-      with:
-        path: ~/.wasm-pack
-        key: ${{ runner.os }}-wasm-pack
-
-    - name: Install wasm-pack
-      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
-    - name: Build WASM
+    - name: Install Rust & wasm-pack
       run: |
-        rm -rf ./pkg
-        wasm-pack build --target web
-        rm -f ./pkg/README.md
+        rustup target add wasm32-unknown-unknown
+        curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-    - name: Upload pkg/ to Release
+    - name: Build WASM (pkg/)
+      run: |
+        wasm-pack build --target web
+        rm -f pkg/README.md
+
+    - name: Add pkg to tag commit
+      env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+      run: |
+        git config user.name  "github-actions"
+        git config user.email "actions@github.com"
+        git add pkg
+        git commit -m "Add pkg artifacts"
+        git push origin HEAD:${{ github.ref }}   # refs/tags/vX.Y.Z
+
+    - name: Upload pkg to Release
       uses: softprops/action-gh-release@v1
       with:
         files: pkg/**/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Prepare www directory
+    - name: Push www/ to pages repo
+      env:
+        SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }}  # PAT (repo 권한)
       run: |
-        rm -rf ./www/pkg
-        cp -r ./pkg ./www/pkg
-
-    - name: Configure Git
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-
-    - name: Deploy www/ to Pages Repo
-      run: |
+        rm -rf www/pkg && cp -r pkg www/pkg
         cd www
         git init
         git add .
-        git commit -m "Deploy from GitHub Actions"
+        git commit -m "Deploy for ${{ github.ref_name }}"
         git branch -M main
         git remote add origin https://x-access-token:${SECRET_TOKEN}@github.com/aoaochan/pngicoicns-gen.io.git
         git push -f origin main
-      env:
-        SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }} 
