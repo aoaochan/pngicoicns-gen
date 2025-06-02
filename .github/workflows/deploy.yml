@@ -36,10 +36,19 @@ jobs:
     - name: Remove .gitignore from pkg
       run: rm -f www/pkg/.gitignore
 
-    - name: Deploy to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@v4
-      with:
-        folder: www
-        branch: gh-pages
-        repository: aoaochan/pngicoicns-gen.io
-        token: ${{ secrets.SECRET_TOKEN }} 
+    - name: Configure Git
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Deploy to Repository
+      run: |
+        cd www
+        git init
+        git add .
+        git commit -m "Deploy from GitHub Actions"
+        git branch -M main
+        git remote add origin https://x-access-token:${SECRET_TOKEN}@github.com/aoaochan/pngicoicns-gen.io.git
+        git push -f origin main
+      env:
+        SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }} 
