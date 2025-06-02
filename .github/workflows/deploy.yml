@@ -26,9 +26,13 @@ jobs:
       run: |
         git config user.name  "github-actions"
         git config user.email "actions@github.com"
-        git add pkg
-        git commit -m "Add pkg artifacts"
-        git push origin HEAD:${{ github.ref }}   # refs/tags/vX.Y.Z
+        git add -f pkg
+        if ! git diff --cached --quiet; then
+          git commit -m "Add pkg artifacts"
+          git push origin HEAD:${{ github.ref }}
+        else
+          echo "No changes in pkg - skip commit"
+        fi
       env: 
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
 
