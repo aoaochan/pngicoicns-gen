@@ -2,10 +2,15 @@ import init, { generate, set_panic_hook } from "./pkg/rswasm_icongen.js";
 
 const imgInput = document.getElementById("imginput");
 const linksdiv = document.getElementById("links");
+const btnchoose = document.getElementById("choose-file-btn");
 
 async function main() {
   await init();
   set_panic_hook();
+
+  btnchoose.addEventListener("click", () => {
+    imgInput.click();
+  });
 
   imgInput.addEventListener("change", (event) => {
     const file = event.target.files[0];
