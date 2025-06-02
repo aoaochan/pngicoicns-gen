@@ -2,7 +2,6 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [ main ]
     tags:
       - 'v*.*.*'
   workflow_dispatch:
@@ -50,7 +49,7 @@ jobs:
       with:
         files: pkg/**/*
       env:
-        SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }} 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Prepare www directory
       run: |
