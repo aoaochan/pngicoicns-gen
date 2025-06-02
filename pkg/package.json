@@ -1,0 +1,18 @@
+{
+  "name": "rswasm-icongen",
+  "type": "module",
+  "collaborators": [
+    "aoaochan"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "rswasm_icongen_bg.wasm",
+    "rswasm_icongen.js",
+    "rswasm_icongen.d.ts"
+  ],
+  "main": "rswasm_icongen.js",
+  "types": "rswasm_icongen.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
