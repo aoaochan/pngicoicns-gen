@@ -6,42 +6,43 @@ on:
 jobs:
   tag:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v3
-      with: { fetch-depth: 0 }   # 기존 태그 조회용
+      with: 
+        fetch-depth: 0  # 기존 태그 조회용
+        token: ${{ secrets.SECRET_TOKEN }}
 
     - name: Calculate & create next tag
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.SECRET_TOKEN }}
       run: |
         set -e
         git fetch --tags
 
-        # 1. HEAD가 이미 버전 태그를 갖고 있으면 아무 것도 안 함
+        # HEAD에 이미 태그가 있으면 종료
         if git tag --points-at HEAD | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-          echo "🔹 HEAD already tagged → skip"; exit 0
+          echo "HEAD already tagged → skip"; exit 0
         fi
 
-        # 2. 최신 버전 태그 가져오기 (semver 기준)
+        # 최신 태그 가져오기
         latest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
-
         if [ -z "$latest" ]; then
-          major=1; minor=0; patch=0            # 최초 태그 v1.0.0
+          major=1; minor=0; patch=0
         else
-          IFS='.' read -r major minor patch <<<"${latest#v}"
+          IFS='.' read major minor patch <<<"${latest#v}"
         fi
 
-        # 3. 존재하지 않는 다음 패치 버전 찾기
+        # 중복 없는 다음 패치 버전 찾기
         while true; do
           patch=$((patch + 1))
           new_tag="v${major}.${minor}.${patch}"
-          if ! git rev-parse -q --verify "refs/tags/$new_tag" >/dev/null; then
-            break
-          fi
+          git show-ref --tags --quiet "$new_tag" || break
         done
-
         echo "🔖 New tag: $new_tag"
 
-        # 4. 태그 생성 및 푸시
         git tag "$new_tag"
-        git push origin "$new_tag"
+
+        # ② PAT을 넣은 URL로 푸시  (★변경)
+        git push "https://x-access-token:${SECRET_TOKEN}@github.com/${{ github.repository }}" \
+                 "$new_tag"
