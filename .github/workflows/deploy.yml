@@ -31,6 +31,7 @@ jobs:
         rm -rf ./pkg
         rm -rf ./www/pkg
         wasm-pack build --target web
+        rm -f ./pkg/README.md
         mv ./pkg ./www/
 
     - name: Remove .gitignore from pkg
