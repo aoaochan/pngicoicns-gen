@@ -1,0 +1,45 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Install wasm-pack
+      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Build
+      run: |
+        rm -rf ./pkg
+        rm -rf ./www/pkg
+        wasm-pack build --target web
+        mv ./pkg ./www/
+
+    - name: Remove .gitignore from pkg
+      run: rm -f www/pkg/.gitignore
+
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: www
+        branch: gh-pages
+        repository: aoaochan/pngicoicns-gen.io
+        token: ${{ secrets.SECRET_TOKEN }} 

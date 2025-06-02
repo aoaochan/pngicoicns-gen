@@ -1,4 +1,4 @@
-# rswasm-icongen
+# pngicoicns-gen 
 
 This project is a WebAssembly-based tool for converting images into icons. It transforms input images into various sizes of PNG, ICO, and ICNS files, generating icons in a rounded square shape.
 
