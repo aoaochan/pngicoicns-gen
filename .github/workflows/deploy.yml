@@ -37,28 +37,30 @@ jobs:
     - name: Install wasm-pack
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-    - name: Install Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-
-    - name: Build
+    - name: Build WASM
       run: |
         rm -rf ./pkg
-        rm -rf ./www/pkg
         wasm-pack build --target web
         rm -f ./pkg/README.md
-        mv ./pkg ./www/
 
-    - name: Remove .gitignore from pkg
-      run: rm -f www/pkg/.gitignore
+    - name: Upload pkg/ to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: pkg/**/*
+      env:
+        SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }} 
+
+    - name: Prepare www directory
+      run: |
+        rm -rf ./www/pkg
+        cp -r ./pkg ./www/pkg
 
     - name: Configure Git
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
 
-    - name: Deploy to Repository
+    - name: Deploy www/ to Pages Repo
       run: |
         cd www
         git init

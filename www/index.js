@@ -1,11 +1,11 @@
-import init, { generate, set_panic_hook } from "./pkg/rswasm_icongen.js";
+import init, { generate } from "https://cdn.jsdelivr.net/gh/aoaochan/pngicoicns-gen@v1.0.0/pkg/rswasm_icongen.js";
 
 const imgInput = document.getElementById("imginput");
 const linksdiv = document.getElementById("links");
 const btnchoose = document.getElementById("choose-file-btn");
 
 async function main() {
-  await init();
+  await init("https://cdn.jsdelivr.net/gh/aoaochan/pngicoicns-gen@v1.0.0/pkg/rswasm_icongen_bg.wasm");
   set_panic_hook();
 
   btnchoose.addEventListener("click", () => {
@@ -15,7 +15,6 @@ async function main() {
   imgInput.addEventListener("change", (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
-    const links = [];
 
     reader.onload = (e) => {
       const bytes = new Uint8Array(e.target.result);
@@ -70,8 +69,6 @@ async function main() {
               a.href = URL.createObjectURL(file);
               a.setAttribute('download', `${filename}.${extension}`);
               a.click();
-
-              links.push(a);
 
               resolve();
             })
