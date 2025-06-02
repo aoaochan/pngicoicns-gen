@@ -29,7 +29,7 @@ jobs:
         git add -f pkg
         if ! git diff --cached --quiet; then
           git commit -m "Add pkg artifacts"
-          git push origin HEAD:${{ github.ref }}
+          git push --force origin HEAD:${{ github.ref }}
         else
           echo "No changes in pkg - skip commit"
         fi
